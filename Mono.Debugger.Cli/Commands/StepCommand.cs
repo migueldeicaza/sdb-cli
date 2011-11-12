@@ -80,4 +80,79 @@ namespace Mono.Debugger.Cli.Commands
             Logger.WriteErrorLine("Unknown step operation: {0}", op);
         }
     }
+
+    internal abstract class BaseStepCommand : ICommand
+    {
+        public string Description
+        {
+            get { return "Steps into an instruction"; }
+        }
+
+        public string Arguments
+        {
+            get { return ""; }
+        }
+
+        public void Execute(CommandArguments args)
+        {
+            var op = args.NextString();
+
+            if (SoftDebugger.State == DebuggerState.Null)
+            {
+                Logger.WriteErrorLine("No session active.");
+                return;
+            }
+
+            if (SoftDebugger.State == DebuggerState.Initialized)
+            {
+                Logger.WriteErrorLine("No process active.");
+                return;
+            }
+
+            if (SoftDebugger.State == DebuggerState.Running)
+            {
+                Logger.WriteErrorLine("Process is running.");
+                return;
+            }
+
+	    DoStep (SoftDebugger.Session);
+	}
+
+	protected abstract void DoStep (SoftDebuggerCliSession session);
+    }
+
+    internal class Step : BaseStepCommand {
+	    protected override void DoStep (SoftDebuggerCliSession session)
+	    {
+		    session.NextLine ();
+	    }
+    }
+
+    internal class StepInstruction : BaseStepCommand {
+	    protected override void DoStep (SoftDebuggerCliSession session)
+	    {
+		    session.NextInstruction ();
+	    }
+    }
+
+    internal class Next : BaseStepCommand {
+	    protected override void DoStep (SoftDebuggerCliSession session)
+	    {
+		    session.StepLine ();
+	    }
+    }
+
+    internal class NextInstruction : BaseStepCommand {
+	    protected override void DoStep (SoftDebuggerCliSession session)
+	    {
+		    session.NextInstruction ();
+	    }
+    }
+    
+    internal class Finish : BaseStepCommand {
+	    protected override void DoStep (SoftDebuggerCliSession session)
+	    {
+		    session.Finish ();
+	    }
+    }
 }

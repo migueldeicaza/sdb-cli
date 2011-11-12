@@ -65,12 +65,13 @@ BINARIES = \
 
 
 RESGEN=resgen2
-	
+
 all: $(ASSEMBLY) $(PROGRAMFILES) $(BINARIES) 
 
 FILES = \
 	CommandArguments.cs \
 	CommandLine.cs \
+	getline.cs \
 	Commands/BreakpointCommand.cs \
 	Commands/ContinueCommand.cs \
 	Commands/ExitCommand.cs \

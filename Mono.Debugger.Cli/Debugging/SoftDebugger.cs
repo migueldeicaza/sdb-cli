@@ -81,36 +81,52 @@ namespace Mono.Debugger.Cli.Debugging
             FindRuntime();
         }
 
-        private static void FindRuntime()
+	static string ProbePath (string path)
+	{
+		var file = Path.Combine (path, unix ? "mono" : "mono.exe");
+		if (File.Exists (file))
+			return file;
+		return null;
+	}
+	    
+	static string ProbePrefix (string prefix)
+	{
+		return ProbePath (Path.Combine (prefix, "bin"));
+	}
+	    
+	static bool unix = Environment.OSVersion.Platform != PlatformID.Win32NT;
+	    
+        static void FindRuntime()
         {
             var rtPaths = Configuration.RuntimePathPrefixes;
             string fullPath = null;
-
+	    
             if (rtPaths != null)
             {
                 foreach (var prefix in rtPaths)
                 {
-                    if (string.IsNullOrWhiteSpace(prefix))
-                        continue;
-
-                    fullPath = Path.Combine(prefix, "bin");
-
-                    if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                        fullPath = Path.Combine(fullPath, "mono");
-                    else
-                        fullPath = Path.Combine(fullPath, "mono.exe");
-
-                    if (File.Exists(fullPath))
-                    {
-                        _runtimePath = prefix;
-                        break;
-                    }
+		    fullPath = ProbePrefix (prefix);
+		    if (fullPath != null)
+			    _runtimePath = prefix;
                 }
 
-                if (_runtimePath != null)
-                    Logger.WriteInfoLine("Using runtime: {0}", fullPath);
-                else
-                    Logger.WriteErrorLine("No valid runtime found. Please check the configuration file ({0}).", Configuration.FileName);
+                if (_runtimePath == null){
+		    foreach (var p in Environment.GetEnvironmentVariable ("PATH").Split (':')){
+			    string path = p.TrimEnd ('/');
+			    if (!path.EndsWith ("bin"))
+				    continue;
+			    fullPath = ProbePath (path);
+			    if (fullPath != null){
+				    _runtimePath = path.Substring (0, path.Length-4);
+				    break;
+			    }
+		    }
+		}
+
+		if (_runtimePath != null)
+			Logger.WriteInfoLine("Using runtime: {0}", fullPath);
+                else 
+			Logger.WriteErrorLine("No valid runtime found. Please check the configuration file ({0}).", Configuration.FileName);
             }
             else
             {

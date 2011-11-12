@@ -8,6 +8,7 @@ using Mono.Debugger.Cli.Logging;
 using Mono.Debugger.Soft;
 using Mono.Debugging.Client;
 using Mono.Debugging.Soft;
+using Mono.Terminal;
 
 namespace Mono.Debugger.Cli
 {
@@ -46,6 +47,7 @@ namespace Mono.Debugger.Cli
             {
                 { "Help", new HelpCommand() },
                 { "Exit", new ExitCommand() },
+                { "Quit", new ExitCommand() },
                 { "Log", new LogCommand() },
                 { "CD", new CurrentDirectoryCommand() },
                 { "Init", new InitializeCommand() },
@@ -73,32 +75,43 @@ namespace Mono.Debugger.Cli
         {
             Dialect = new CommandDialect(CommandDialect.Gdb, new Dictionary<string, ICommand>
             {
-                { "Help", new HelpCommand() },
-                { "Quit", new ExitCommand() },
-                { "Log", new LogCommand() },
-                { "CD", new CurrentDirectoryCommand() },
-                { "Init", new InitializeCommand() },
-                { "Run", new StartCommand() },
-                { "Continue", new ContinueCommand() },
-                { "Cont", new ContinueCommand() },
-                { "C", new ContinueCommand() },
-                { "Step", new StepCommand() },
-                { "Stop", new StopCommand() },
-                { "Break", new BreakpointCommand() },
-                { "Catch", new CatchpointCommand() },
-                { "DB", new DatabaseCommand() },
-                { "FC", new FirstChanceCommand() },
-                { "Backtrace", new BacktraceCommand() },
-                { "BT", new BacktraceCommand() },
-                { "Frame", new FrameCommand() },
-                { "Disassemble", new DisassembleCommand() },
-                { "Disas", new DisassembleCommand() },
-                { "Source", new SourceCommand() },
-                { "Decompile", new DecompileCommand() },
-                { "Locals", new LocalsCommand() },
-                { "Print", new EvaluationCommand() },
-                { "Watch", new WatchCommand() },
-                { "Thread", new ThreadCommand() },
+                { "help", new HelpCommand() },
+                { "quit", new ExitCommand() },
+                { "log", new LogCommand() },
+                { "cd", new CurrentDirectoryCommand() },
+                { "init", new InitializeCommand() },
+                { "run", new StartCommand() },
+                { "continue", new ContinueCommand() },
+                { "cont", new ContinueCommand() },
+                { "c", new ContinueCommand() },
+                { "step", new Step() },
+                { "s", new Step() },
+                { "next", new Next() },
+                { "n", new Next() },
+                { "stepi", new StepInstruction() },
+                { "si", new StepInstruction() },
+                { "nexti", new NextInstruction() },
+                { "ni", new NextInstruction() },
+		{ "f", new Finish () },
+		{ "finish", new Finish () },
+                { "stop", new StopCommand() },
+                { "b", new BreakpointCommand() },
+                { "break", new BreakpointCommand() },
+                { "catch", new CatchpointCommand() },
+                { "db", new DatabaseCommand() },
+                { "fc", new FirstChanceCommand() },
+                { "backtrace", new BacktraceCommand() },
+                { "bt", new BacktraceCommand() },
+                { "frame", new FrameCommand() },
+                { "disassemble", new DisassembleCommand() },
+                { "disas", new DisassembleCommand() },
+                { "source", new SourceCommand() },
+                { "decompile", new DecompileCommand() },
+                { "locals", new LocalsCommand() },
+                { "print", new EvaluationCommand() },
+                { "p", new EvaluationCommand() },
+                { "watch", new WatchCommand() },
+                { "thread", new ThreadCommand() },
             });
         }
 
@@ -109,12 +122,20 @@ namespace Mono.Debugger.Cli
                 typeof(SoftDebuggerSession).Assembly.GetName().Name, SoftDebugger.Features);
             Logger.WriteInfoLine("Type \"Help\" for a list of commands or \"Exit\" to quit.");
 
+	    var lineEditor = new LineEditor ("sdb");
             string line;
-
+	    
             while (true)
             {
-                Logger.WriteEmphasisString("(sdb) ");
-                line = Console.ReadLine();
+                line = lineEditor.Edit ("sdb> ", "");
+		if (line == null){
+			if (SoftDebugger.State != DebuggerState.Null && SoftDebugger.State != DebuggerState.Initialized){
+				var answer = lineEditor.Edit ("Do you really want to quit? (y/n) ", "");
+				if (answer == null || answer.ToLower ().StartsWith ("y"))
+					break;
+			} else
+				break;
+		}
 
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
