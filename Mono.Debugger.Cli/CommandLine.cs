@@ -26,49 +26,7 @@ namespace Mono.Debugger.Cli
         {
             ResumeEvent = new AutoResetEvent(false);
 
-            switch (Configuration.CommandDialect)
-            {
-                case CommandDialect.Sdb:
-                    InitializeSdbDialect();
-                    break;
-                case CommandDialect.Gdb:
-                    InitializeGdbDialect();
-                    break;
-                default:
-                    Logger.WriteErrorLine("Unknown command dialect: {0}", Configuration.CommandDialect);
-                    InitializeSdbDialect();
-                    break;
-            }
-        }
-
-        private static void InitializeSdbDialect()
-        {
-            Dialect = new CommandDialect(CommandDialect.Sdb, new Dictionary<string, ICommand>
-            {
-                { "Help", new HelpCommand() },
-                { "Exit", new ExitCommand() },
-                { "Quit", new ExitCommand() },
-                { "Log", new LogCommand() },
-                { "CD", new CurrentDirectoryCommand() },
-                { "Init", new InitializeCommand() },
-                { "Start", new StartCommand() },
-                { "Continue", new ContinueCommand() },
-                { "Step", new StepCommand() },
-                { "Stop", new StopCommand() },
-                { "BP", new BreakpointCommand() },
-                { "CP", new CatchpointCommand() },
-                { "DB", new DatabaseCommand() },
-                { "FC", new FirstChanceCommand() },
-                { "BT", new BacktraceCommand() },
-                { "Frame", new FrameCommand() },
-                { "Disasm", new DisassembleCommand() },
-                { "Source", new SourceCommand() },
-                { "Decompile", new DecompileCommand() },
-                { "Locals", new LocalsCommand() },
-                { "Eval", new EvaluationCommand() },
-                { "Watch", new WatchCommand() },
-                { "Thread", new ThreadCommand() },
-            });
+	    InitializeGdbDialect();
         }
 
         private static void InitializeGdbDialect()
@@ -84,16 +42,16 @@ namespace Mono.Debugger.Cli
                 { "continue", new ContinueCommand() },
                 { "cont", new ContinueCommand() },
                 { "c", new ContinueCommand() },
-                { "step", new Step() },
-                { "s", new Step() },
-                { "next", new Next() },
-                { "n", new Next() },
-                { "stepi", new StepInstruction() },
-                { "si", new StepInstruction() },
-                { "nexti", new NextInstruction() },
-                { "ni", new NextInstruction() },
-		{ "f", new Finish () },
-		{ "finish", new Finish () },
+                { "step", new StepCommand() },
+                { "s", new StepCommand() },
+                { "next", new NextCommand() },
+                { "n", new NextCommand() },
+                { "stepi", new StepInstructionCommand() },
+                { "si", new StepInstructionCommand() },
+                { "nexti", new NextInstructionCommand() },
+                { "ni", new NextInstructionCommand() },
+		{ "f", new FinishCommand () },
+		{ "finish", new FinishCommand () },
                 { "stop", new StopCommand() },
                 { "b", new BreakpointCommand() },
                 { "break", new BreakpointCommand() },

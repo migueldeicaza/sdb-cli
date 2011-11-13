@@ -9,7 +9,7 @@ namespace Mono.Debugger.Cli
 
         public const string Gdb = "gdb";
 
-        internal CommandDialect(string name, Dictionary<string, ICommand> commands)
+	internal CommandDialect(string name, Dictionary<string, ICommand> commands)
         {
             Name = name;
             Commands = commands;
